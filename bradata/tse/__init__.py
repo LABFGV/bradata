@@ -24,7 +24,7 @@ def get_legendas(year=None):
 
 def get_vagas(year=None):
     args(tipo='vagas', year=year)
-
+git merge --no-ff odanoburu-tse
 def get_votacao_candidato_munzona(year=None):
     args(tipo='votacao_candidato_munzona', year=year)
 
