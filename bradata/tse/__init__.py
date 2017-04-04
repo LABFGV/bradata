@@ -8,7 +8,7 @@ def args(data_type=None, year=None):
         year = [year]
 
     os.system("PYTHONPATH='.' luigi --module bradata.tse.pipeline"
-              " Fetch --local-scheduler --data_type '{}' --year '{}'".format(data_type, year))
+              " Fetch --local-scheduler --data-types '{}' --year '{}'".format(data_type, year))
 
 
 def candidatos(year=None):
@@ -19,7 +19,6 @@ def perfil_eleitorado(year=None):
 
 def bem_candidato(year=None):
     args(data_type='bem_candidato', year=year)
-
 
 def legendas(year=None):
     args(data_type='legendas', year=year)

@@ -49,28 +49,6 @@ class Get_Header_Relation(luigi.Task):
 
 
 
-class Get_URL(luigi.Task):
-    """
-    """
-
-    def output(self):
-        return luigi.LocalTarget(os.path.join(bradata.__download_dir__, 'tse', 'config', 'url_relation.yaml'))
-
-    def run(self):
-        conn = bradata.connection.Connection()
-
-        result = conn.perform_request(
-            'https://raw.githubusercontent.com/labFGV/bradata/master/bradata/tse/url_relation.yaml')
-
-        if result['status'] == 'ok':
-            result = result['content']
-        else:
-            raise Exception('File was not dowloaded')
-
-        with self.output().open('w') as o_file:
-            o_file.write(result)
-
-
 class Download_Unzip(luigi.Task):
     """
     """
@@ -149,8 +127,9 @@ class Aggregat(luigi.Task):
     def run(self):
 
         headers = pd.read_csv(self.input()['headers'].path)
-
-        files = glob.glob(self.input()['download'].path + "*.txt".format(self.year))
+        print(self.input()['download'].path)
+        files = glob.glob(self.input()['download'].path + "/*.txt".format(self.year))
+        print(files)
 
         header = self.find_header(self.data_type, self.year)
 
