@@ -1,7 +1,7 @@
 import bradata.utils
 import bradata.connection
 
-
+import os
 import io
 from zipfile import ZipFile
 import pandas as pd
@@ -13,7 +13,7 @@ import luigi
 class Get_Headers(luigi.Task):
 
     def output(self):
-        return luigi.LocalTarget(bradata.utils._set_download_directory() + '/tse/config/headers.csv')
+        return luigi.LocalTarget(os.path.join(bradata.__download_dir__, 'tse', 'config', 'headers.csv'))
 
     def run(self):
         conn = bradata.connection.Connection()
@@ -31,7 +31,7 @@ class Get_Headers(luigi.Task):
 
 class Get_Header_Relation(luigi.Task):
     def output(self):
-        return luigi.LocalTarget(bradata.utils._set_download_directory() + '/tse/config/header_relation.yaml')
+        return luigi.LocalTarget(os.path.join(bradata.__download_dir__, 'tse', 'config', 'header_relation.yaml'))
 
     def run(self):
         conn = bradata.connection.Connection()
@@ -48,20 +48,42 @@ class Get_Header_Relation(luigi.Task):
             o_file.write(result)
 
 
+
+class Get_URL(luigi.Task):
+    """
+    """
+
+    def output(self):
+        return luigi.LocalTarget(os.path.join(bradata.__download_dir__, 'tse', 'config', 'url_relation.yaml'))
+
+    def run(self):
+        conn = bradata.connection.Connection()
+
+        result = conn.perform_request(
+            'https://raw.githubusercontent.com/labFGV/bradata/master/bradata/tse/url_relation.yaml')
+
+        if result['status'] == 'ok':
+            result = result['content']
+        else:
+            raise Exception('File was not dowloaded')
+
+        with self.output().open('w') as o_file:
+            o_file.write(result)
+
+
 class Download_Unzip(luigi.Task):
     """
     """
 
     year = luigi.Parameter()
-    tipo = luigi.Parameter()
+    data_type = luigi.Parameter()
 
     def output(self):
         """
         :return: the target output for this task.
         :rtype: object (:py:class:`luigi.target.Target`)
         """
-        return luigi.LocalTarget(bradata.utils._set_download_directory() +
-                                 '/tse/temp/{}_{}/'.format(self.tipo, self.year))
+        return luigi.LocalTarget(os.path.join(bradata.__download_dir__, 'tse', 'temp', '{}_{}'.format(self.data_type, self.year)))
 
     def requires(self):
         """
@@ -73,9 +95,8 @@ class Download_Unzip(luigi.Task):
     def run(self):
         conn = bradata.connection.Connection()
 
-
         with self.input().open('r') as input_file:
-            base_url = self.select_url(self.tipo)
+            base_url = self.select_url(self.data_type)
 
             url = base_url + bradata.utils._treat_inputs(self.year) + '.zip'
 
@@ -90,13 +111,12 @@ class Download_Unzip(luigi.Task):
 
             zipfile.extractall(self.output().path)
 
-    def select_url(self, tipo):
+    def select_url(self, data_type):
 
         with open(self.input().path, 'r') as f:
             data = yaml.load(f)
 
-
-        return data[tipo]['url']
+        return data[data_type]['url']
 
 
 class Aggregat(luigi.Task):
@@ -104,7 +124,7 @@ class Aggregat(luigi.Task):
     """
 
     year = luigi.Parameter()
-    tipo = luigi.Parameter()
+    data_type = luigi.Parameter()
 
     def requires(self):
         """
@@ -113,7 +133,7 @@ class Aggregat(luigi.Task):
         :return: object (:py:class:`luigi.task.Task`)
         """
 
-        return {'download': Download_Unzip(tipo=self.tipo, year=self.year),
+        return {'download': Download_Unzip(data_type=self.data_type, year=self.year),
                 'headers': Get_Headers(),
                 'header_relation': Get_Header_Relation()}
 
@@ -124,8 +144,7 @@ class Aggregat(luigi.Task):
         :return: the target output for this task.
         :rtype: object (:py:class:`luigi.target.Target`)
         """
-        return luigi.LocalTarget(bradata.utils._set_download_directory() +
-                                 '/tse/{}_{}.csv'.format(self.tipo, self.year))
+        return luigi.LocalTarget(os.path.join(bradata.__download_dir__, 'tse', '{}_{}.csv'.format(self.data_type, self.year)))
 
     def run(self):
 
@@ -133,7 +152,7 @@ class Aggregat(luigi.Task):
 
         files = glob.glob(self.input()['download'].path + "*.txt".format(self.year))
 
-        header = self.find_header(self.tipo, self.year)
+        header = self.find_header(self.data_type, self.year)
 
         df_list = []
         for filename in sorted(files):
@@ -143,12 +162,12 @@ class Aggregat(luigi.Task):
 
         full_df = pd.concat(df_list)
 
-        full_df.to_csv(self.output().path, index=False)
+        full_df.to_csv(self.output().path, index=False, encoding='utf-8')
 
-    def find_header(self, tipo, ano):
+    def find_header(self, data_type, ano):
         with open(self.input()['header_relation'].path, 'r') as f:
             data = yaml.load(f)
-        a = data[tipo]['columns']
+        a = data[data_type]['columns']
 
         final = 0
         for k in a.keys():
@@ -159,15 +178,15 @@ class Aggregat(luigi.Task):
 
 class Fetch(luigi.Task):
 
-    tipos = luigi.Parameter()
+    data_types = luigi.Parameter()
     years = luigi.Parameter()
 
     def requires(self):
 
-        tipos = self.string_to_list(self.tipos)
+        data_types = self.string_to_list(self.data_types)
         years = self.string_to_list(self.years)
 
-        return [Aggregat(tipo=t, year=y) for t in tipos for y in years]
+        return [Aggregat(data_type=t, year=y) for t in data_types for y in years]
 
     def string_to_list(self, string):
         string = string.replace("'",'').replace('[', '').replace(']','').replace(' ', '')

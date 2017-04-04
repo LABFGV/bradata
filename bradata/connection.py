@@ -1,7 +1,10 @@
-import tqdm
+#import tqdm
 import time
 import requests
 
+# how to use the warning below: do something equivalent to `from bradata.connection import _stale_url_warning` and then
+# `_stale_url_warning.format((req.status_code, req.text, website.name, website.url)
+_stale_url_warning = """the request failed with code {}:\n"{}"\nthe {} server may be down, or it may have changed its address or architecture.\nplease report the latter to the maintainers.\nyou can check if the website is online at {}"""
 
 class Connection:
     """
@@ -11,7 +14,6 @@ class Connection:
     def perform_request(self, url, nr_tries=5, binary=False):
         """
         Perform a request handling exception and server errors printing status
-
         :param url: string
         :param nr_tries: int
         :return: dict :: status : ok/error, content: xml/url, [error_type, error_desc] if error
@@ -60,4 +62,3 @@ class Connection:
                 time.sleep(5)
                 print('Trying Again...')
                 continue
-

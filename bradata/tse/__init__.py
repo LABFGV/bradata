@@ -1,41 +1,42 @@
 import os
 
-def args(tipo=None, year=None):
+def args(data_type=None, year=None):
 
-    if not isinstance(tipo, list):
-        tipo = [tipo]
+    if not isinstance(data_type, list):
+        data_type = [data_type]
     if not isinstance(year, list):
         year = [year]
 
     os.system("PYTHONPATH='.' luigi --module bradata.tse.pipeline"
-              " Fetch --local-scheduler --tipo '{}' --year '{}'".format(tipo, year))
+              " Fetch --local-scheduler --data_type '{}' --year '{}'".format(data_type, year))
 
-def get_candidatos(year=None):
-    args(tipo='candidatos', year=year)
 
-def get_perfil_eleitorado(year=None):
-    args(tipo='perfil_eleitorado', year=year)
+def candidatos(year=None):
+    args(data_type='candidatos', year=year)
 
-def get_bem_candidato(year=None):
-    args(tipo='bem_candidato', year=year)
+def perfil_eleitorado(year=None):
+    args(data_type='perfil_eleitorado', year=year)
 
-def get_legendas(year=None):
-    args(tipo='legendas', year=year)
+def bem_candidato(year=None):
+    args(data_type='bem_candidato', year=year)
 
-def get_vagas(year=None):
-    args(tipo='vagas', year=year)
+def legendas(year=None):
+    args(data_type='legendas', year=year)
 
-def get_votacao_candidato_munzona(year=None):
-    args(tipo='votacao_candidato_munzona', year=year)
+def vagas(year=None):
+    args(data_type='vagas', year=year)
+git
+def votacao_candidato_munzona(year=None):
+    args(data_type='votacao_candidato_munzona', year=year)
 
-def get_votacao_partido_munzona(year=None):
-    args(tipo='votacao_partido_munzona', year=year)
+def votacao_partido_munzona(year=None):
+    args(data_type='votacao_partido_munzona', year=year)
 
-def get_votacao_secao_eleitoral(year=None):
-    args(tipo='votacao_secao_eleitoral', year=year)
+def votacao_secao_eleitoral(year=None):
+    args(data_type='votacao_secao_eleitoral', year=year)
 
-def get_vdetalhe_votacao_munzona(year=None):
-    args(tipo='detalhe_votacao_munzona', year=year)
+def vdetalhe_votacao_munzona(year=None):
+    args(data_type='detalhe_votacao_munzona', year=year)
 
 
 
