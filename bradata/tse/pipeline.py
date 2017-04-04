@@ -9,7 +9,6 @@ import glob
 import yaml
 
 import luigi
-import luigi.contrib.postgres
 
 class Get_Headers(luigi.Task):
 
@@ -44,28 +43,6 @@ class Get_Header_Relation(luigi.Task):
             result = result['content']
         else:
             print('File was not dowloaded')
-
-        with self.output().open('w') as o_file:
-            o_file.write(result)
-
-
-class Get_URL(luigi.Task):
-    """
-    """
-
-    def output(self):
-        return luigi.LocalTarget(bradata.utils._set_download_directory() + '/tse/config/url_relation.yaml')
-
-    def run(self):
-        conn = bradata.connection.Connection()
-
-        result = conn.perform_request(
-            'https://raw.githubusercontent.com/labFGV/bradata/master/bradata/tse/url_relation.yaml')
-
-        if result['status'] == 'ok':
-            result = result['content']
-        else:
-            raise Exception('File was not dowloaded')
 
         with self.output().open('w') as o_file:
             o_file.write(result)
