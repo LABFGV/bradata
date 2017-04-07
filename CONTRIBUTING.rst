@@ -38,11 +38,6 @@ general guidelines
    (hint: `you almost never
    will <http://softwareengineering.stackexchange.com/questions/80084/is-premature-optimization-really-the-root-of-all-evil>`__.)
 
-   -  this would mean something like
-      `this <http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`__.
-   -  we autogenerate documentation using sphinx. you may write in .md
-      or .rst, but **do** write.
-
 -  
 
 code guidelines
@@ -51,7 +46,7 @@ code guidelines
 file structure
 --------------
 
-in the bradata package, every smodule is an institution (data provider). at its directory, its ``__init__.py`` should contain the functions and classes that are to be available to the public, and *nothing else*. that's because the preferred way for a user to use the ``bradata`` package is to explore what it has to offer by tab-completion available at ipython and jupyter notebook, as the package is projected to have a number of functions greater than what a user would like to memorize.
+in the bradata package, every smodule is an institution (data provider). at its directory, its ``__init__.py`` should contain the functions and classes that are to be available to the public, and **nothing else**. that's because the preferred way for a user to use the ``bradata`` package is to explore what it has to offer by tab-completion available at ipython and jupyter notebook, as the package is projected to have a number of functions greater than what a user would like to memorize.
 
 importing only the public functions in the ``__init__.py`` file prevents the namespace from being crowded with private objects::
 
@@ -59,6 +54,19 @@ importing only the public functions in the ``__init__.py`` file prevents the nam
     tse.get_candidatos()
 
 submodules should be divided by similarity or proximity, for instance ``bradata/cgu/_cadastros.py`` has functions to get three different databases, but as the code to get them is mostly the same they reside together. (the three functions are actually only one function and two wrappers, to prevent writing more code than we need to). if the submodule is not meant to be called by the user, it should start with an underscore (\_), so that it doesn't pollute the namespace.
+
+git workflow
+============
+
+so you've forked the repo and added some nice functionality, or correct some bug. thank you very much! but before we can accept your work, you must follow a few simple procedures:
+
+- document every function, class, module, etc. you create or change, prerrably using `google-style docstrings <http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_. if you are implementing some tricky part, we'd appreciate if you wrote a tutorial or some kind of extensive documentation. we autogenerate documentation using sphinx, and you may write in .md or .rst, but please write.
+
+- always ``git pull [source-repo] master`` before making a pull request!
+
+- if you created a new public module or submodule, import it in the ``__init__.py`` of the main package.
+
+- add your name to the :ref:`bradata-authors`;
 
 contributors
 ============

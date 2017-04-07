@@ -9,7 +9,10 @@
 # serve to show the default.
 
 import sys
-from recommonmark.parser import CommonMarkParser
+#from recommonmark.parser import CommonMarkParser
+
+#this is needed while the package is not installed
+sys.path.append('/home/bruno/Documents/github/bradata/')
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -52,12 +55,12 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx.ext.todo',
 templates_path = ['_templates']
 
 # to make markdown work. needs commonmark package
-source_parsers = {
+"""source_parsers = {
    '.md': 'recommonmark.parser.CommonMarkParser',
-}
+}"""
 
 # The suffix of source filenames.
-source_suffix = ['.rst', '.md']
+source_suffix = ['.rst']
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'

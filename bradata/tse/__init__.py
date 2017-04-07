@@ -38,4 +38,3 @@ def vdetalhe_votacao_munzona(year=None):
     args(data_type='detalhe_votacao_munzona', year=year)
 
 
-

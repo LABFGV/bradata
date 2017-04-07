@@ -1,8 +1,8 @@
 tutorial for beginners
-======================
+######################
 
 step-by-step
-------------
+============
 
 let's review the steps to start contributing:
 
@@ -45,7 +45,7 @@ project, keep reading!
    your pull request.
 
 how-to's
---------
+========
 
 google and stackoverflow are your best friends, but:
 
@@ -67,5 +67,10 @@ google and stackoverflow are your best friends, but:
    -  `syntax philosophy and some
       specs <daringfireball.net/projects/markdown/syntax>`__
    -  
+
+-  Restructured text
+
+    -  ` Restructured text and sphinx <http://thomas-cokelaer.info/tutorials/sphinx/rest_syntax.html>`_
+    -  
 
 -  

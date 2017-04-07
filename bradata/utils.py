@@ -1,5 +1,6 @@
 import zipfile
 import os
+import bradata
 
 # python has a built-in type checking tool in python 3.5
 def _treat_inputs(value):
@@ -74,3 +75,9 @@ def _set_download_directory(user_path=None):
         user_path = input("bradata doesn't seem to have the permission to write to the default download directory. please specify your desired download path:\n ")
         download_path = _set_download_directory(user_path)  # to check if provided path is writable
     return download_path
+
+def _create_download_subdirectory(submodule_name):
+    submodule_download_path = os.path.join(bradata.__download_dir__, submodule_name)
+    if not os.path.exists(submodule_download_path):
+        os.mkdir(submodule_download_path)
+    return None
