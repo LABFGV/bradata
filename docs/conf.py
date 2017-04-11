@@ -12,7 +12,7 @@ import sys
 #from recommonmark.parser import CommonMarkParser
 
 #this is needed while the package is not installed
-sys.path.append('../bradata/')
+sys.path.append('/home/bruno/Documents/github/bradata/')
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

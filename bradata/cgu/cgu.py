@@ -8,7 +8,7 @@ import io
 import bradata
 
 
-def get_ceis(date=None, cadastro='CEIS', consulta=None):
+def get_ceis(date=None, cadastro='CEIS'):
     """
     gets CEIS (cadastro de empresas inidôneas e suspensas, http://www.portaldatransparencia.gov.br/ceis) data. it
     converts the csv encoding to utf8.
@@ -17,11 +17,9 @@ def get_ceis(date=None, cadastro='CEIS', consulta=None):
     importing datetime module and typing `datetime.date(1994, 07, 18)`. 
     :return: downloads csv to directory bradata.__download_dir__
     """
-    if consulta is None:  # because some consultas are not the same as cadastro, e.g., CEAF
-        consulta=cadastro
     if date is None:
         date = datetime.datetime.now()
-    params = {'a': date.year, 'm': '{:02d}'.format(date.month), 'd': '{:02d}'.format(date.day), 'consulta': consulta}
+    params = {'a': date.year, 'm': '{:02d}'.format(date.month), 'd': '{:02d}'.format(date.day), 'consulta': cadastro}
     r = requests.get('http://arquivos.portaldatransparencia.gov.br/downloads.asp', stream=True, params=params, timeout=1)
     if r.status_code == 200:
         request_content = io.BytesIO(r.content)
@@ -66,14 +64,3 @@ def get_cnep(date=None):
     :return: downloads csv to directory bradata.__download_dir__
     """
     return get_ceis(date=date, cadastro='CNEP')
-
-def get_ceaf(date=None):
-    """
-    gets CEAF (Cadastro de Expulsões da Administração Federal, http://www.transparencia.gov.br/servidores/SaibaMaisPunicoes.asp) data. it
-    converts the csv encoding to utf8.
-    :param date: a datetime object with year, month, and day attributes. if not provided, will get current day (be
-    careful if on other timezone than Brasília). input can be constructed by 
-    importing datetime module and typing `datetime.date(1994, 07, 18)`. 
-    :return: downloads csv to directory bradata.__download_dir__
-    """
-    return get_ceis(date=date, cadastro='CEAF', consulta='expulsoes')
