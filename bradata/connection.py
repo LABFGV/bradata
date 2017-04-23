@@ -11,7 +11,7 @@ class Connection:
     Class that handle connections
     """
 
-    def perform_request(self, url, nr_tries=5, binary=False):
+    def perform_request(self, url, nr_tries=2, binary=False):
         """
         Perform a request handling exception and server errors printing status
         :param url: string
@@ -21,7 +21,7 @@ class Connection:
         count = 0
         while True:
             try:
-                print('Fetch {}'.format(url))
+                print('Downloading: {}'.format(url))
 
                 #fetch_time = time.time()
                 req = requests.get(url, timeout=1)

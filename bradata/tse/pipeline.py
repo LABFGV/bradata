@@ -7,8 +7,24 @@ from zipfile import ZipFile
 import pandas as pd
 import glob
 import yaml
+import shutil
 
 import luigi
+import luigi.contrib.postgres
+
+
+def _find_header(data_type, year, path):
+    with open(path, 'r') as f:
+        data = yaml.load(f)
+    a = data[data_type]['columns']
+
+    final = min(list(a.keys()))
+    for k in a.keys():
+        if int(year) >= k:
+            final = k
+
+    return str(a[final])
+
 
 class Get_Headers(luigi.Task):
 
@@ -42,15 +58,15 @@ class Get_Header_Relation(luigi.Task):
         if result['status'] == 'ok':
             result = result['content']
         else:
-            print('File was not dowloaded')
+            raise Warning ('Header Relation was not dowloaded')
 
         with self.output().open('w') as o_file:
             o_file.write(result)
 
 
-
 class Download_Unzip(luigi.Task):
     """
+    Download and unzip
     """
 
     year = luigi.Parameter()
@@ -83,7 +99,7 @@ class Download_Unzip(luigi.Task):
             if result['status'] == 'ok':
                 result = result['content']
             else:
-                print('File was not dowloaded')
+                raise Exception ('File was not dowloaded')
 
             zipfile = ZipFile(io.BytesIO(result))
 
@@ -99,6 +115,7 @@ class Download_Unzip(luigi.Task):
 
 class Aggregat(luigi.Task):
     """
+    Get all states csv files aggregate it to a unique file with header
     """
 
     year = luigi.Parameter()
@@ -106,9 +123,6 @@ class Aggregat(luigi.Task):
 
     def requires(self):
         """
-        * :py:class:`~.AggregateArtists` or
-        * :py:class:`~.AggregateArtistsHadoop` if :py:attr:`~/.Top10Artists.use_hadoop` is set.
-        :return: object (:py:class:`luigi.task.Task`)
         """
 
         return {'download': Download_Unzip(data_type=self.data_type, year=self.year),
@@ -117,21 +131,15 @@ class Aggregat(luigi.Task):
 
     def output(self):
         """
-        Returns the target output for this task.
-        In this case, a successful execution of this task will create a file on the local filesystem.
-        :return: the target output for this task.
-        :rtype: object (:py:class:`luigi.target.Target`)
         """
         return luigi.LocalTarget(os.path.join(bradata.__download_dir__, 'tse', '{}_{}.csv'.format(self.data_type, self.year)))
 
     def run(self):
 
         headers = pd.read_csv(self.input()['headers'].path)
-        print(self.input()['download'].path)
         files = glob.glob(self.input()['download'].path + "/*.txt".format(self.year))
-        print(files)
 
-        header = self.find_header(self.data_type, self.year)
+        header = _find_header(self.data_type, self.year, self.input()['header_relation'].path)
 
         df_list = []
         for filename in sorted(files):
@@ -143,19 +151,48 @@ class Aggregat(luigi.Task):
 
         full_df.to_csv(self.output().path, index=False, encoding='utf-8')
 
-    def find_header(self, data_type, ano):
-        with open(self.input()['header_relation'].path, 'r') as f:
-            data = yaml.load(f)
-        a = data[data_type]['columns']
+        print('Completed! Access your file at',
+              os.path.join(bradata.__download_dir__, 'tse', '{}_{}.csv'.format(self.data_type, self.year)))
 
-        final = 0
-        for k in a.keys():
-            if int(ano) >= k:
-                final = k
 
-        return str(a[final])
+class ToSQl(luigi.Task):
 
-class Fetch(luigi.Task):
+    data_type = luigi.Parameter()
+    year = luigi.Parameter()
+
+    def requires(self):
+        return Aggregat(data_type=self.data_type, year=self.year)
+
+    def run(self):
+        with open('bradata/tse/config_server.yaml', 'r') as f:
+            server = yaml.load(f)
+
+        host = server['host']
+        database = server['database']
+        user = server['user']
+        password = server['password']
+        schema = 'tse'
+        table = '{}_{}'.format(self.data_type, self.year)
+
+        from sqlalchemy import create_engine
+        url = 'postgresql://{}:{}@{}/{}'
+        url = url.format(user, password, host, database)
+        engine = create_engine(url)
+
+        headers = pd.read_csv(self.input().path)
+        print('Inserting data do DB. It can take a while...')
+        headers.to_sql(table, engine, schema=schema, if_exists='replace')
+        print('The data is on your DB! Check schema {}, table {}'.format(schema, table))
+
+        with self.output().open('w') as f:
+            f.write('')
+
+    def output(self):
+        return luigi.LocalTarget(os.path.join(bradata.__download_dir__, 'tse', 'temp',
+                                              '{}_{}'.format(self.data_type, self.year), 'dumb.txt'))
+
+
+class Fetch(luigi.WrapperTask):
 
     data_types = luigi.Parameter()
     years = luigi.Parameter()
@@ -165,7 +202,7 @@ class Fetch(luigi.Task):
         data_types = self.string_to_list(self.data_types)
         years = self.string_to_list(self.years)
 
-        return [Aggregat(data_type=t, year=y) for t in data_types for y in years]
+        yield [ToSQl(data_type=t, year=y) for t in data_types for y in years]
 
     def string_to_list(self, string):
         string = string.replace("'",'').replace('[', '').replace(']','').replace(' ', '')
