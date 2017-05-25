@@ -1,35 +1,35 @@
+import bradata.connection
+from bradata.utils import  _unzip
+
 import os
 import glob
 import pandas as pd
-import bradata.connection
-from bradata.utils import  _unzip, _set_download_directory
 
 
 def unzip_tse(result, current_path):
 
     if not os.path.exists(current_path):
         os.makedirs(current_path)
+    filepath = os.path.join(current_path, 'temp.zip')
 
-    with open(current_path + 'temp.zip', 'wb') as f:
+    with open((filepath), 'wb') as f:
         f.write(result)
 
-    _unzip(current_path + 'temp.zip', current_path)
+    _unzip(filepath, current_path)
 
-    os.remove(current_path + 'temp.zip')
+    os.remove(filepath)
 
-def aggregate_tse(path, type, year):
+def aggregate_tse(path, data_type, year):
 
     year =  year
     files = glob.glob("{}/*_{}_*.txt".format(path, year))
 
-    headers = pd.read_csv(os.getcwd() + '/bradata/tse/headersTSE.csv')
-
-
+    headers = pd.read_csv(os.path.join(os.getcwd(), 'bradata', 'tse', 'headersTSE.csv'))
 
     df_list = []
     print(files)
     for filename in sorted(files):
-        if type == 'candidatos':
+        if data_type == 'candidatos':
             if year >= 2014:
                 header = 'CONSULTA_CAND_2014'
             elif year == 2012:
@@ -41,7 +41,7 @@ def aggregate_tse(path, type, year):
 
     full_df = pd.concat(df_list)
 
-    full_df.to_csv(path + '/{}/{}_{}.csv'.format(type, type, year))
+    full_df.to_csv(os.path.join(path + '{}'.format(data_type), '{}_{}.csv'.format(data_type, year), encoding='utf-8'))
 
 def download_headers():
 
@@ -52,4 +52,4 @@ def download_headers():
     else:
         print('File was not dowloaded')
 
-    unzip_tse(result, _set_download_directory())
+    unzip_tse(result, bradata.__download_dir__)

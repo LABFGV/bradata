@@ -11,7 +11,7 @@ class Connection:
     Class that handle connections
     """
 
-    def perform_request(self, url, nr_tries=5, binary=False):
+    def perform_request(self, url, nr_tries=2, binary=False):
         """
         Perform a request handling exception and server errors printing status
         :param url: string
@@ -21,7 +21,7 @@ class Connection:
         count = 0
         while True:
             try:
-                print('Fetch {}'.format(url))
+                print('Downloading: {}'.format(url))
 
                 #fetch_time = time.time()
                 req = requests.get(url, timeout=1)
@@ -29,7 +29,11 @@ class Connection:
 
                 status = req.status_code
                 if status != 200:
+                    if status == 404:
+                        print('ERROR, this link does not exist. Checkout if it is correct')
+                        return {'status': 'error', 'error_type': req.status_code, 'error_desc': req.text, 'content': url}
                     print('ERROR {}. {}'.format(req.status_code, req.text))
+
                     time.sleep(5)
 
                     count += 1

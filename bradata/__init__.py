@@ -2,6 +2,7 @@
 import bradata.agencias
 import bradata.cgu
 import bradata.tse
+import bradata.utils
 from pkg_resources import get_distribution as _get_distribution
 
 try:
